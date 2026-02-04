@@ -1,0 +1,26 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "production" ]
+
+jobs:
+
+  build:
+
+    runs-on: self-hosted
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: stop the already running container
+      run: docker stop userdockcon
+    - name: remove the already running container
+      run: docker rm userdockcon
+    - name: remove existing image
+      run: docker rmi userdockimg
+    - name: Build the Docker image
+      run: docker build -t userdockimg .
+    - name: create docker container
+      run: docker container create -p 8080:8080 --name userdockcon userdockimg:latest
+    - name: start the container
+      run: docker start userdockcon

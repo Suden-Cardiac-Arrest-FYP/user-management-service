@@ -1,55 +1,67 @@
 package api
 
 import (
-	"User-Mgt/utils"
+  
+"User-Mgt/utils"
+"github.com/gofiber/fiber/v2"
 
-	"github.com/gofiber/fiber/v2"
+  
+    "User-Mgt/dao"
+    
+  
 
-	"User-Mgt/dao"
-
-	"User-Mgt/dto"
-	"bytes"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"io"
-	"math/rand"
-	"net/http"
-	"os"
-	"strings"
-	"time"
+  "bytes"
+    "encoding/json"
+    "errors"
+    "fmt"
+    "io"
+    "math/rand"
+    "net/http"
+    "os"
+    "strings"
+    "time"
+  	"User-Mgt/dto"
+  
+  
+  
 )
 
-// @Summary      CreateUser
+// @Summary      CreateUser 
 // @Description   This API performs the USERMGT_CREATE operation on User. It allows you to  User records.
 // @Tags          User
 // @Accept       json
 // @Produce      json
-// @Param
+// @Param        
 // @Success      200  {array}   dto.User "Status OK"
 // @Success      202  {array}   dto.User "Status Accepted"
 // @Failure      404 "Not Found"
 // @Router      /CreateUser [USERMGT_CREATE]
 
-func CreateUserApi(c *fiber.Ctx) error {
+    func CreateUserApi(c *fiber.Ctx) error {
 
-	var Auth0Domain string = os.Getenv("AUTH0_DOMAIN")
-	var ClientId string = os.Getenv("AUTH0_CLIENTID")
-	inputObj := dto.User{}
-	if err := c.BodyParser(&inputObj); err != nil {
-		return utils.SendErrorResponse(c, fiber.StatusBadRequest, err.Error())
-	}
-	password := generatePassword()
-	token, err := RetrieveAccessToken(Auth0Domain, ClientId)
+
+
+
+
+    
+  
+var Auth0Domain string = os.Getenv("AUTH0_DOMAIN")
+var ClientId string = os.Getenv("AUTH0_CLIENTID")
+inputObj := dto.User{}
+if err := c.BodyParser(&inputObj); err != nil {
+    return utils.SendErrorResponse(c, fiber.StatusBadRequest, err.Error())
+}
+password := generatePassword()
+token, err := RetrieveAccessToken(Auth0Domain, ClientId)
+if err != nil {
+    return utils.SendErrorResponse(c, fiber.StatusBadRequest, err.Error())
+}
+users, err := GetAuth0User(Auth0Domain ,inputObj.Email,*token)
 	if err != nil {
 		return utils.SendErrorResponse(c, fiber.StatusBadRequest, err.Error())
 	}
-	users, err := GetAuth0User(Auth0Domain, inputObj.Email, *token)
-	if err != nil {
-		return utils.SendErrorResponse(c, fiber.StatusBadRequest, err.Error())
-	}
-	if len(users) != 0 {
-		if inputObj.Email == users[0]["email"].(string) {
+	if len(users) !=0{
+		if inputObj.Email == users[0]["email"].(string){
 			return utils.SendErrorResponse(c, fiber.StatusBadRequest, errors.New("user already exists").Error())
 		}
 	}
@@ -63,19 +75,23 @@ func CreateUserApi(c *fiber.Ctx) error {
 			return utils.SendErrorResponse(c, fiber.StatusBadRequest, err.Error())
 		}
 		inputObj.UserId = *userId
-	} else {
+	}else {
 		inputObj.UserId = users[0]["user_id"].(string)
 	}
-	err = dao.DB_CreateUser(&inputObj)
+err = dao.DB_CreateUser(&inputObj)
 	if err != nil {
 		return utils.SendErrorResponse(c, fiber.StatusBadRequest, err.Error())
 	}
 
-	return utils.SendSuccessResponse(c)
 
+
+        return utils.SendSuccessResponse(c)
+        
+    
 }
 
-func passwordChangeRequest(domain, clientId, email string) error {
+
+    func passwordChangeRequest(domain, clientId, email string) error {
 	url := "https://" + domain + "/dbconnections/change_password"
 
 	payload := strings.NewReader("{\"client_id\": \"" + clientId + "\",\"email\": \"" + email + "\",\"connection\": \"Username-Password-Authentication\"}")
@@ -94,12 +110,11 @@ func passwordChangeRequest(domain, clientId, email string) error {
 	defer res.Body.Close()
 	return nil
 }
-func createAuth0User(domain, token string, user dto.User, password string) (*string, error) {
+func createAuth0User(domain, token string, user dto.User,password string) (*string, error) {
 	metadata := make(map[string]interface{})
 	metadata["active"] = false
 	metadata["role"] = user.RoleName
-	metadata["workspaceid"] = "WS572"
-	metadata["organizationId"] = user.OrganizationId
+	metadata["workspaceid"] = "WS231"
 
 	userDataA0 := dto.UserAuth0{
 		Email:         user.Email,
@@ -162,9 +177,9 @@ func RetrieveAccessToken(domain, clientId string) (*string, error) {
 	}
 	defer res.Body.Close()
 	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, errors.New(err.Error())
-	}
+  if err !=nil{
+    return nil, errors.New(err.Error())
+  }
 	var data map[string]interface{}
 	if err := json.Unmarshal(body, &data); err != nil {
 		fmt.Println(err)
@@ -201,8 +216,8 @@ func generatePassword() string {
 	return string(randomString)
 }
 
-func GetAuth0User(domain string, email string, token string) ([]map[string]interface{}, error) {
-	url := "https://" + domain + "/api/v2/users-by-email?email=" + email
+func GetAuth0User(domain string, email string,token string) ([]map[string]interface{}, error) {
+	url := "https://"+domain+"/api/v2/users-by-email?email="+email
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -233,3 +248,4 @@ func GetAuth0User(domain string, email string, token string) ([]map[string]inter
 	return users, nil
 
 }
+

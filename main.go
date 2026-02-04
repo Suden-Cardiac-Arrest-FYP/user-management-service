@@ -1,14 +1,14 @@
 package main
 
 import (
-	"User-Mgt/dbConfig"
 	"User-Mgt/apiHandlers"
+	"User-Mgt/dbConfig"
 	"User-Mgt/integrations"
-	"User-Mgt/utils"
+	"errors"
 	"fmt"
 	"log"
 	"net"
-	"errors"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 )
@@ -35,7 +35,7 @@ func main() {
 	fmt.Println("Starting application")
 
 	app := fiber.New(fiber.Config{
-		AppName: "User-Mgt",
+		AppName:   "User-Mgt",
 		BodyLimit: 4000 * 1024,
 	})
 
@@ -45,14 +45,12 @@ func main() {
 	//Remove Pre-Generated Outs
 	dbConfig.RemoveGeneratedOuts()
 
-	config := utils.LoadAuthConfig()
 	// Define the API routes
-	apiHandlers.Router(app, config)
+	apiHandlers.Router(app)
 
 	// Start the server
 	log.Fatal(app.Listen(":8886"))
 }
-
 
 func externalIP() (string, error) {
 	ifaces, err := net.Interfaces()

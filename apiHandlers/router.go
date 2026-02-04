@@ -2,7 +2,6 @@ package apiHandlers
 
 import (
 	"User-Mgt/api"
-	"User-Mgt/dto"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -11,7 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
-func Router(app *fiber.App, authConfig dto.AuthConfig) {
+func Router(app *fiber.App) {
 	app.Use(cors.New())
 	app.Use(logger.New())
 	app.Use(recover.New())
@@ -28,11 +27,9 @@ func Router(app *fiber.App, authConfig dto.AuthConfig) {
 			fiber.MethodDelete,
 			fiber.MethodPatch,
 		}, ","),
-		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+		AllowHeaders: "Origin, Content-Type, Accept",
 	}))
 	app.Static("/", "./docs/rapiDoc/build")
-	// authMiddleware := NewAuthMiddleware(authConfig)
-	// defaultGroup.Use(authMiddleware.ValidateToken)
 	DefaultMappings(defaultGroup)
 	RouteMappings(group)
 }
@@ -54,12 +51,13 @@ cg.Post("/UploadRole", api.UploadRoleApi)
 cg.Get("/DownloadRole", api.DownloadRoleApi)
 cg.Get("/UsermgtGetconfigRole", api.UsermgtGetconfigRoleApi)
 
+cg.Get("/FindallBranch", api.FindallBranchApi)
 cg.Get("/swagger", api.SwaggerHandler)
 
 }
 
 func DefaultMappings(cg fiber.Router) {
 	cg.Get("/", func(c *fiber.Ctx) error {
-		return c.JSON(map[string]string{"message": "user-management-service is up and running", "version": "1.0"})
+		return c.JSON(map[string]string{"message": "User-Mgt-APP613 service is up and running", "version": "1.0"})
 	})
 }

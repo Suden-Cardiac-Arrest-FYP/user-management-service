@@ -1,4 +1,3 @@
-# User-Mgt-app1514-cgaas
+# User-Mgt-app613-cgaas
 CGaaS by Evolza
-# user-management-service
-# user-management-service
+# user-mgt-service
