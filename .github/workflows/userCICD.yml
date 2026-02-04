@@ -1,0 +1,49 @@
+name: Docker Image CICD
+
+on:
+  push:
+    branches: [ "production" ]
+
+jobs:
+
+  CI:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Login to Dockerhub
+      env:
+        DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
+        DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+      run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+      
+    - name: Build the Docker image
+      run: docker build -t chathnuka/userdockimg .
+    - name: push image
+      run: docker push chathnuka/userdockimg:latest
+
+  CD:
+
+    runs-on: self-hosted
+    needs: CI 
+    
+    steps:
+    - uses: actions/checkout@v4
+    - name: Login to Dockerhub
+      env:
+        DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
+        DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+      run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+    - name: pull docker image
+      run: docker pull chathnuka/userdockimg:latest
+    - name: stop existing container
+      run: docker stop userdockcon || true
+    - name: delete existing container
+      run: docker rm userdockcon || true
+    - name: create container
+      run: docker container create -p 8080:8080 --name userdockcon chathnuka/userdockimg:latest
+    - name: run the container
+      run: docker start userdockcon
+    - name: remove none tag images
+      run: docker image prune -f

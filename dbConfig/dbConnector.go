@@ -21,11 +21,11 @@ func ConnectToMongoDB() {
 	}
 
 	//Ping database
-    err = client.Ping(ctx, nil)
-    if err != nil {
-        log.Fatal(err)
-    }
+	err = client.Ping(ctx, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    fmt.Println("Successfully connected to mongo cluster")
+	fmt.Println("Successfully connected to mongo cluster")
 	DATABASE = client.Database(DATABASE_NAME)
 }

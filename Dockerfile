@@ -1,24 +1,31 @@
-FROM golang:1.22-alpine
+# Stage 1: Build stage
+FROM golang:1.20-alpine AS build
 
-# Set the working directory to /app
+# Set the working directory
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
+# Copy and download dependencies
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy the source code
 COPY . .
 
-# Run go mod tidy and go get to install dependencies
-RUN go mod tidy
-RUN go get
+# Build the Go application
+RUN CGO_ENABLED=0 GOOS=linux go build -o User-Mgt .
 
-# Copy only the .go files into the container at /app
-COPY *.go ./
+# Stage 2: Final stage
+FROM alpine:latest
 
-# Build the Go application and name the binary as User-Mgt
-RUN go build -o /User-Mgt
+# Set the working directory
+WORKDIR /app
 
-RUN chmod +x /User-Mgt
+# Copy the binary from the build stage
+COPY --from=build /app/User-Mgt .
+COPY .env . 
 
-# Expose port 8888
-EXPOSE 8888
+# Set the timezone and install CA certificates
+RUN apk --no-cache add ca-certificates tzdata
 
-CMD [ "/User-Mgt" ]
+# Set the entrypoint command
+ENTRYPOINT ["/app/User-Mgt"]
